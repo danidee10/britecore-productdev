@@ -1,3 +1,6 @@
+"""Tests for the API."""
+
+import copy
 import unittest
 from json import loads
 
@@ -19,56 +22,60 @@ class TestAPI(unittest.TestCase):
         with app.app_context():
             create_dropdb(CONFIG.SQLALCHEMY_DATABASE_URI)
 
-            # Create Insurers
-            britecore = Insurer(name='BriteCore')
-            vodafone = Insurer(name='Vodafone')
-            dstv = Insurer(name='DSTV')
+    def _init_database(self):
+        """Create Insurance and Risk templates."""
+        # Create Insurers
+        britecore = Insurer(name='BriteCore')
+        vodafone = Insurer(name='Vodafone')
+        dstv = Insurer(name='DSTV')
 
-            db.session.add_all((britecore, vodafone, dstv))
-            db.session.commit()
+        db.session.add_all((britecore, vodafone, dstv))
+        db.session.commit()
 
-            # Create RiskTemplates
-            automobile_insurance = RiskTemplate(
-                insurer=britecore, name='Automobile',
-                fields=[{'name': 'Price', 'dataType': 'currency'}]
-            )
+        # Create RiskTemplates
+        automobile_insurance = RiskTemplate(
+            insurer=britecore, name='Automobile',
+            fields=[{'name': 'Price', 'dataType': 'currency'}]
+        )
 
-            phone_insurance = RiskTemplate(
-                insurer=vodafone, name='Phone',
-                fields=[
-                    {'name': 'Price', 'dataType': 'currency', 'value': 0},
-                    {'name': 'Plan', 'dataType': 'text', 'value': 'Pay as you Go'}
-                ]
-            )
+        phone_insurance = RiskTemplate(
+            insurer=vodafone, name='Phone',
+            fields=[
+                {'name': 'Price', 'dataType': 'currency', 'value': 0},
+                {'name': 'Plan', 'dataType': 'text', 'value': 'Pay as you Go'}
+            ]
+        )
 
-            tv_insurance = RiskTemplate(
-                insurer=dstv, name='Phone',
-                fields=[
-                    {'name': 'Price', 'dataType': 'currency', 'value': 0},
-                    {
-                        'name': 'Plan', 'dataType': 'enum',
-                        'value': ['Compact', 'Superb', 'Premium']
-                    }
-                ]
-            )
+        tv_insurance = RiskTemplate(
+            insurer=dstv, name='Phone',
+            fields=[
+                {'name': 'Price', 'dataType': 'currency', 'value': 0},
+                {
+                    'name': 'Plan', 'dataType': 'enum',
+                    'value': ['Compact', 'Superb', 'Premium']
+                }
+            ]
+        )
 
-            risk_templates = (
-                automobile_insurance, phone_insurance, tv_insurance
-            )
+        risk_templates = (
+            automobile_insurance, phone_insurance, tv_insurance
+        )
 
-            db.session.add_all((risk_templates))
-            db.session.commit()
+        db.session.add_all((risk_templates))
+        db.session.commit()
 
-            for risk_template in risk_templates:
-                db.session.refresh(risk_template)
+        for risk_template in risk_templates:
+            db.session.refresh(risk_template)
 
-            cls.automobile_insurance = automobile_insurance
-            cls.phone_insurance = phone_insurance
-            cls.tv_insurance = tv_insurance
+        self.automobile_insurance = automobile_insurance
+        self.phone_insurance = phone_insurance
+        self.tv_insurance = tv_insurance
 
     def setUp(self):
         """Setup app and test client."""
         self.client = app.test_client()  # Use a fresh client for each test
+        with app.app_context():
+            self._init_database()
 
     def test_risks(self):
         """Should return a list of risks in the expected format."""
@@ -113,6 +120,46 @@ class TestAPI(unittest.TestCase):
         }
 
         self.assertEqual(loads(response.data), expected)
+
+    def test_add_fields_on_the_fly(self):
+        """
+        A user should be able to create a record on the fly.
+
+        And have it returned to them as JSON from the API
+        """
+        automobile_id = self.automobile_insurance.id
+
+        # Add a new integer field "Accidents" to the Automobile insurance
+        acc_field = {'name': 'Accidents', 'dataType': 'Integer', 'value': 0}
+        with app.app_context():
+            # SQLAlchemy has issues updating nested JSON so we have to fetch
+            # the object again instead of reusing self.automobile_insurance
+            auto_insurance = db.session.query(RiskTemplate).get(automobile_id)
+            fields = copy.copy(auto_insurance.fields)
+            fields.append(acc_field)
+
+            auto_insurance.fields = fields
+            db.session.commit()
+
+        response = self.client.get('/risks/%s/' % self.automobile_insurance.id)
+        expected = {
+            'id': self.automobile_insurance.id,
+            'name': 'Automobile',
+            'fields': [
+                {'name': 'Price', 'dataType': 'currency'},
+                {'name': 'Accidents', 'dataType': 'Integer', 'value': 0}
+            ]
+        }
+
+        self.assertEqual(loads(response.data), expected)
+
+    def tearDown(self):
+        """Clean all tables after each test completes."""
+        with app.app_context():
+            meta = db.metadata
+            for table in reversed(meta.sorted_tables):
+                db.session.execute(table.delete())
+            db.session.commit()
 
     @classmethod
     def tearDownClass(cls):

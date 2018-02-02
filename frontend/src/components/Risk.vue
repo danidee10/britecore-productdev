@@ -3,7 +3,7 @@
     <h1>{{ risk.name }} Insurance</h1>
 
     <form>
-      <Widgets :key="field.id" v-for="field in risk.fields" :field="field" /> 
+      <Widgets :key="field.id" v-for="field in risk.fields" :field="field" />
 
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
