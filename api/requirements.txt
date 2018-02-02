@@ -13,7 +13,7 @@ pep8==1.7.1
 psycopg2==2.7.3.2
 pylint==1.8.2
 six==1.11.0
-SQLAlchemy==1.2.2
+SQLAlchemy==1.2.0b3
 SQLAlchemy-Utils==0.32.21
 Werkzeug==0.14.1
 wrapt==1.10.11

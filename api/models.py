@@ -23,28 +23,79 @@ class Insurer(BaseModel):
     """Model to store Insurer data."""
     name = db.Column(db.String)
 
+    def __str__(self):
+        """User friendly name for the model."""
+        return self.name
 
-class Risk(BaseModel):
+
+class RiskTemplate(BaseModel):
     """
+    Risk templates stores the base template for each risk type.
+
     Stores info about different risk types E.g Automobiles and houses.
   
     Each Risk type has varying fields that are stored using JSON
     (PostgreSQL JSONB to be specific) This allows us to add arbitrary
     attributes on the fly and query them easily
+    
+    The main difference between RiskTemplate and Risk is that RiskTemplate
+    stores no values in it's JSONB columns it only stores a column's metadata
+    It can be used to update existing Risk records when a new column is added
+    or removed.
+
+    Risk records are records that are tied to clients for each Insurer
     """
 
     insurer_id = db.Column(
         db.Integer, db.ForeignKey('insurer.id'), nullable=False
     )
 
-    insurer = db.relationship(Insurer, backref=db.backref('risks', lazy=True))
+    insurer = db.relationship(
+        Insurer, backref=db.backref('risk_templates', lazy=True)
+    )
 
-    risk_type = db.Column(db.String)
+    name = db.Column(db.String)
+    fields = db.Column(JSONB)
+
+    def __str__(self):
+        """User friendly representation of the risk template."""
+        return self.name
+
+    def to_json(self):
+        """Returns dict representation that can be jsonified."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'fields': self.fields
+        }
+
+
+class Risk(BaseModel):
+    """
+    This is the actual model that stores info for different clients
+    """
+
+    template_id = db.Column(
+        db.Integer, db.ForeignKey('risk_template.id'), nullable=False
+    )
+
+    template = db.relationship(
+        RiskTemplate, backref=db.backref('risks', lazy=True)
+    )
+
     fields = db.Column(JSONB)
 
     def to_json(self):
         """Returns dict representation that can be jsonified."""
         return {
-            'type': self.risk_type,
+            'id': self.id,
+            'name': self.template.name,
             'fields': self.fields
         }
+
+    def __str__(self):
+        """Return the customer name as the str representation."""
+        customer_name = filter(
+            lambda x: x['name'] == 'Customer Name', self.fields
+        )
+        return next(customer_name)["value"]
