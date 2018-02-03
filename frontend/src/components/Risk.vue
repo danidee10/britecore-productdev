@@ -1,5 +1,5 @@
 <template>
-  <div v-show="!this.loading" class="col-sm-6 offset-3">
+  <div v-show="!loading" class="col-sm-6 offset-3">
     <h1>{{ risk.name }} Insurance</h1>
 
     <form>
