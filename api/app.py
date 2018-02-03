@@ -3,6 +3,7 @@
 from flask import Flask, abort, jsonify, make_response, render_template
 
 from flask_cors import CORS
+from whitenoise import WhiteNoise
 
 from .admin import admin
 from .config import config as CONFIG
@@ -14,6 +15,8 @@ app = Flask(
     __name__, template_folder='../frontend/dist',
     static_folder='../frontend/dist/static'
 )
+app.wsgi_app = WhiteNoise(app.wsgi_app)
+
 app.config.from_object(CONFIG)
 
 db.init_app(app)

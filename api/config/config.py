@@ -1,7 +1,11 @@
-"""Configuration for local development."""
+"""Configuration file."""
+
+from os import environ
 
 DEBUG = True
-SECRET_KEY = 'localsecret'
+SECRET_KEY = environ.get('SECRET_KEY', 'localsecret')
 
-SQLALCHEMY_DATABASE_URI = 'postgresql://postgres@localhost/britecore'
+SQLALCHEMY_DATABASE_URI = environ.get(
+    'DATABASE_URL', 'postgresql://postgres@localhost/britecore'
+)
 SQLALCHEMY_TRACK_MODIFICATIONS = True
