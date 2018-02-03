@@ -1,5 +1,5 @@
 <template>
-  <div class="col-sm-6 offset-3">
+  <div v-show="!this.loading" class="col-sm-6 offset-3">
     <h1>{{ risk.name }} Insurance</h1>
 
     <form>
@@ -19,6 +19,7 @@ export default {
   name: 'Risk',
   data () {
     return {
+      loading: true,
       risk: {}
     }
   },
@@ -30,6 +31,7 @@ export default {
     axios.get(`${process.env.API_URL}/risks/${this.$route.params.riskId}/`)
       .then((response) => {
         this.risk = response.data
+        this.loading = false
       })
       .catch((error) => {
         console.error(error)
