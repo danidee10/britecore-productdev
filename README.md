@@ -1,4 +1,5 @@
 # britecore-productdev
+
 This implementation uses Flask and PostgreSQL so make sure you have `PostgreSQL` installed before you proceed.
 
 The Frontend is an SPA built with `Vue.js` and `vue-router` for navigation.
@@ -13,13 +14,13 @@ cd frontend
 npm install
 ```
 
-Bundle the Vue app all it's dependencies with:
+Bundle the Vue app and all it's dependencies with:
 
 ```bash
 npm run build
 ```
 
-This creates a new folder containing the `index.html` page and all the assets that would be served from flask.
+This creates a new folder containing with all the assets that can be served from Flask.
 
 If you need to make changes to the code, you can start the webpack development server with:
 
@@ -27,7 +28,7 @@ If you need to make changes to the code, you can start the webpack development s
 npm run dev
 ```
 
-and re-build the application when you're done
+and re-build the application when you're done.
 
 On the Flask API server, CORS has been enabled so you shouldn't have problems making requests to the server when you're developing locally.
 
@@ -57,7 +58,7 @@ Create the database with:
 flask createdb
 ```
 
-***Note: this creates a database named britcore if it doesn't exist. If it exists, it would be destoryed and recreated***
+***Note: this creates a database named britecore if it doesn't exist. If it exists, it would be destoryed and recreated***
 
 Finally start the flask development server with:
 
@@ -65,7 +66,7 @@ Finally start the flask development server with:
 flask run
 ```
 
-Navigate to `http://localhost:5000` and you should see the Vue SPA rendered in the browser.
+Navigate to `http://localhost:5000` and you should see the `Vue` SPA rendered in the browser.
 
 ### API endpoints
 
@@ -79,11 +80,13 @@ Navigate to `http://localhost:5000` and you should see the Vue SPA rendered in t
 
 I created two tables to manage the Risks namely `risk_template` and `risk_client`. A risk template is the base template for a Risk type, it only contains custom fields and their default values. The `risk_client` table stores information for each client an Insurer wants to manage.
 
-Each `RiskClient` is related to a `RiskTemplate` where it was created from, Updates to the `RiskTemplates` (Such as addition of new fields) can be propagated to all existing `RiskClients` if desired.
+Each `RiskClient` is related to a `RiskTemplate` (through the `risk_template_id` Foreign key) where it was created from, Updates to the `RiskTemplates` Such as addition of new fields, Renaming of existing fields etc can be propagated to all existing `RiskClients` if desired.
 
 The `insurer` table contains information about an insurer.
 
-My approach uses JSON Specifically `JSONB` columns in `PostgreSQL`. (`MySQL` and `SQLite` also support `JSON` fields) to overcome the problem of user defined columns, another approach that could be used is The [Entity Value Approach (EAV)](https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model) but this approach comes with a lot of disadvantages which include Lot's of Empty columns and unnecessary joins between the metadata table and the fields table.
+My approach uses JSON Specifically `JSONB` columns in `PostgreSQL` to overcome the problem of user defined columns. `MySQL` and `SQLite` also support `JSON` fields.
+
+Another popular approach that could be used to tackle this problem is The [Entity Value Approach (EAV)](https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model) but this approach comes with it's own downsides which include Empty columns and unnecessary joins between the metadata table and the fields table which could cause degraded performance as the table size increases.
 
 With the `JSON` approach each custom field is stored as JSON alongside it's metadata (The field name, data type etc) and any custom information about the field.
 
