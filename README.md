@@ -8,6 +8,8 @@ The Frontend is an SPA built with `Vue.js` and `vue-router` for navigation.
 Install the dependencies from npm with:
 
 ```bash
+cd frontend
+
 npm install
 ```
 
