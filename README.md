@@ -1,17 +1,19 @@
 # britecore-productdev
-This implementation uses Flask and PostgreSQL so make sure you have PostgreSQL installed before you proceed
+This implementation uses Flask and PostgreSQL so make sure you have `PostgreSQL` installed before you proceed.
 
 The Frontend is an SPA built with `Vue.js` and `vue-router` for navigation.
 
-## Setup the frontend app
+## Frontend setup
 
-First install the dependencies from npm with:
+Install the dependencies from npm with:
 
 ```bash
+cd frontend
+
 npm install
 ```
 
-Bundle the Vue app all it's dependencies with
+Bundle the Vue app all it's dependencies with:
 
 ```bash
 npm run build
@@ -25,43 +27,53 @@ If you need to make changes to the code, you can start the webpack development s
 npm run dev
 ```
 
-and build it again when you're done.
+and re-build the application when you're done
 
-On the Flask API server CORS is already enabled so you shouldn't have problems making request to it
+On the Flask API server, CORS has been enabled so you shouldn't have problems making requests to the server when you're developing locally.
 
-## Setup the Flask Server
+## Flask setup
 
 Install the python requirements with:
 
 ```bash
+cd api
+
 pip install -r requirements.txt
 ```
 
-set the flask app to app.py with
+set the flask app to app.py with:
 
 ```bash
 export FLASK_APP=app.py
 ```
 
-Create the database with (Note that this creates a database named britcore if it doesn't exist ***If it exists, it would be destoryed and recreated***):
+Optionally, you can set the `DEBUG` mode with:
+
+```bash
+export FLASK_DEBUG=1
+```
+
+Create the database with:
 
 ```bash
 flask createdb
 ```
 
-Finally start the flask development server with
+***Note: this creates a database named britcore if it doesn't exist. If it exists, it would be destoryed and recreated***
+
+Finally start the flask development server with:
 
 ```bash
 flask run
 ```
 
-Navigate to `http://localhost:5000` and you should see the Vue SPA rendered (If you've built the `vue` app with `webpack` from the previous section)
+Navigate to `http://localhost:5000` and you should see the Vue SPA rendered in the browser.
 
 ### API endpoints
 
-- ***risks*** -> Returns a list of all risks in the database
+- ***risks*** -> Returns a list of all risks in the database.
 
-- ***risks/<risk_id>*** Returns a risk with all it's id's.
+- ***risks/<risk_id>*** -> Returns a single risk.
 
 ### Rationale
 
@@ -73,11 +85,11 @@ Each `RiskClient` is related to a `RiskTemplate` where it was created from, Upda
 
 The `insurer` table contains information about an insurer.
 
-My approach uses JSON (Specifically `JSONB` columns in `PostgreSQL`, `MySQL` and `SQLite` also support `JSON` fields) to overcome the problem of user defined columns, another approach that could be used is The [Entity Value Approach (EAV)](https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model) which comes with it's own downsides (Lot's of Empty columns or unnecessary joins for the metadata table and the fields table).
+My approach uses JSON Specifically `JSONB` columns in `PostgreSQL`. (`MySQL` and `SQLite` also support `JSON` fields) to overcome the problem of user defined columns, another approach that could be used is The [Entity Value Approach (EAV)](https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model) but this approach comes with a lot of disadvantages which include Lot's of Empty columns and unnecessary joins between the metadata table and the fields table.
 
-With the JSON approach each custom field is stored as JSON along it's with metadata and any custom information about the field you want to store.
+With the `JSON` approach each custom field is stored as JSON alongside it's metadata (The field name, data type etc) and any custom information about the field.
 
-This an example of a response returned from the `risk/<id>` endpoint.
+This an example of a response returned from the `risk/<risk_id>` endpoint.
 
 ```JavaScript
 {
@@ -118,11 +130,17 @@ This an example of a response returned from the `risk/<id>` endpoint.
 }
 ```
 
-This makes it easy to even set default values for each field with the "value" key and for Integer fields we could even do some fancy things like setting max and min values which can be used on the Vue frontend for client side validation e.g on a numeric field`<input type="number" :min="risk.minValue" :max="risk.maxValue">`.
+This makes it easy to set default values for each field with the `"value"` key and for Integer fields we could even do some fancy things like setting max and min values which can be used on the Vue frontend for client side validation For example, we can do this:
 
-It also makes it ridiculously simple to update field values and even their structure, We just need to replace the existing JSON with the new structure and values we want.
+```html
+<input type="number" :min="risk.minValue" :max="risk.maxValue">
+```
 
-It also makes it easy to build the API since we're mostly returning existing `JSON` from the database.
+*where risk is a risk object fetched from the /api/<risk_id> endpoint*
+
+It also makes it ridiculously simple to update field values and their structure, We just need to replace the existing JSON with the new structure and values we want.
+
+The code for the API is also straight forward since we're mostly returning existing `JSON` from the database.
 
 On the performance side, `JSON` fields in postgres can be queried like normal columns, they can be searched, sorted, filtered, grouped etc. They can also be indexed to speed up the queries.
 
@@ -130,10 +148,9 @@ In conclusion, using `JSON` fields gives us the flexibility of `NoSQL` databases
 
 ### Admin interface
 
-I also provided an admin interface (thanks to Flask-admin) to view and change the structure of a risk.
+I also provided an admin interface (thanks to Flask-admin) to view and change the structure of a risk template.
 
-it can be accessed by navigation to `/admin/`
-
+it can be accessed by navigating to `/admin/`
 
 ### Unit tests
 
