@@ -153,6 +153,22 @@ class TestAPI(unittest.TestCase):
 
         self.assertEqual(loads(response.data), expected)
 
+    def test_nonexistent_risk(self):
+        """A nonexistent risk should return a 404 response with a message."""
+        response = self.client.get('/risks/123455/')
+        expected = {
+            'message': 'Risk not found',
+        }
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(loads(response.data), expected)
+
+    def test_allow_only_get(self):
+        """The two endpoints should allow only GET requests."""
+        for url in ('/risks/', '/risks/1/'):
+            response = self.client.post(url)
+            self.assertEqual(response.status_code, 405)
+
     def tearDown(self):
         """Clean all tables after each test completes."""
         with app.app_context():

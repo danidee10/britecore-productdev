@@ -21,7 +21,7 @@ class BaseModel(db.Model):
 
 class Insurer(BaseModel):
     """Model to store Insurer data."""
-    name = db.Column(db.String)
+    name = db.Column(db.String(100), unique=True)
 
     def __str__(self):
         """User friendly name for the model."""
@@ -33,15 +33,15 @@ class RiskTemplate(BaseModel):
     Risk templates stores the base template for each risk type.
 
     Stores info about different risk types E.g Automobiles and houses.
-  
+ 
     Each Risk type has varying fields that are stored using JSON
     (PostgreSQL JSONB to be specific) This allows us to add arbitrary
     attributes on the fly and query them easily
-    
-    The main difference between RiskTemplate and Risk is that RiskTemplate
-    stores no values in it's JSONB columns it only stores a column's metadata
-    It can be used to update existing Risk records when a new column is added
-    or removed.
+   
+    The main difference between RiskTemplate and RiskClient is that
+    the RiskTemplate stores no values in it's JSONB columns
+    it only stores a column's metadata It can be used to update
+    existing Risk records when a new column is added or removed.
 
     Risk records are records that are tied to clients for each Insurer
     """
@@ -54,7 +54,7 @@ class RiskTemplate(BaseModel):
         Insurer, backref=db.backref('risk_templates', lazy=True)
     )
 
-    name = db.Column(db.String)
+    name = db.Column(db.String(60))
     fields = db.Column(JSONB)
 
     def __str__(self):
@@ -70,28 +70,20 @@ class RiskTemplate(BaseModel):
         }
 
 
-class Risk(BaseModel):
+class RiskClient(BaseModel):
     """
     This is the actual model that stores info for different clients
     """
 
-    template_id = db.Column(
+    risk_template_id = db.Column(
         db.Integer, db.ForeignKey('risk_template.id'), nullable=False
     )
 
-    template = db.relationship(
+    risk_template = db.relationship(
         RiskTemplate, backref=db.backref('risks', lazy=True)
     )
 
     fields = db.Column(JSONB)
-
-    def to_json(self):
-        """Returns dict representation that can be jsonified."""
-        return {
-            'id': self.id,
-            'name': self.template.name,
-            'fields': self.fields
-        }
 
     def __str__(self):
         """Return the customer name as the str representation."""

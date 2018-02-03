@@ -27,7 +27,7 @@ export default {
 
   created () {
     // Fetch a Risk from the api
-    axios.get('http://localhost:5000/risks/1')
+    axios.get(`${process.env.API_URL}/risks/${this.$route.params.riskId}/`)
       .then((response) => {
         this.risk = response.data
       })

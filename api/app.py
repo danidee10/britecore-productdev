@@ -1,16 +1,19 @@
 """Main app file."""
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, abort, jsonify, make_response, render_template
 
 from flask_cors import CORS
 
 from .admin import admin
 from .config import config as CONFIG
 from .utils import create_dropdb, dropdb
-from .models import db, Risk, RiskTemplate
+from .models import db, RiskTemplate
 
 
-app = Flask(__name__)
+app = Flask(
+    __name__, template_folder='../frontend/dist',
+    static_folder='../frontend/dist/static'
+)
 app.config.from_object(CONFIG)
 
 db.init_app(app)
@@ -39,21 +42,27 @@ def home():
     return render_template('index.html')
 
 
-@app.route('/risks/', defaults={'risk_id': None})
-@app.route('/risks/<int:risk_id>/')
-def get_risk_by_id(risk_id):
-    """Endpoint for risks."""
-    if risk_id:
-        risk = db.session.query(RiskTemplate).get(risk_id)
-        return jsonify(risk.to_json())
-
+@app.route('/risks/')
+def get_risks():
+    """Get all risks."""
     risks = db.session.query(RiskTemplate).all()
     risks = [risk.to_json() for risk in risks]
 
     return jsonify(risks)
 
 
+@app.route('/risks/<int:risk_id>/')
+def get_risk_by_id(risk_id):
+    """Get a risk by it's id."""
+    risk = db.session.query(RiskTemplate).get(risk_id)
+
+    if not risk:
+        abort(make_response(jsonify({'message': 'Risk not found'}), 404))
+
+    return jsonify(risk.to_json())      
+
+
 @app.teardown_request
 def close_db_connection(exception=None):
     """Closes the db connection at the end of each request."""
-    db.session.remove()
+    db.session.close()

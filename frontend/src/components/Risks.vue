@@ -10,7 +10,6 @@
 
 <script>
 // Component to fetch all Risks from the api
-
 import axios from 'axios'
 
 export default {
@@ -21,7 +20,7 @@ export default {
   },
 
   created () {
-    axios.get('http://localhost:5000/risks/')
+    axios.get(`${process.env.API_URL}/risks/`)
       .then((response) => {
         this.risks = response.data
       })
@@ -31,3 +30,11 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+
+h2 {
+  margin-bottom: 60px;
+}
+
+</style>

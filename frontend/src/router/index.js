@@ -13,7 +13,7 @@ export default new Router({
       component: Risks
     },
     {
-      path: '/:id/',
+      path: '/:riskId/',
       name: 'Risk',
       component: Risk
     }
