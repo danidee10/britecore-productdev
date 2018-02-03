@@ -8,8 +8,6 @@ The Frontend is an SPA built with `Vue.js` and `vue-router` for navigation.
 Install the dependencies from npm with:
 
 ```bash
-cd frontend
-
 npm install
 ```
 
@@ -36,8 +34,6 @@ On the Flask API server, CORS has been enabled so you shouldn't have problems ma
 Install the python requirements with:
 
 ```bash
-cd api
-
 pip install -r requirements.txt
 ```
 
