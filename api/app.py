@@ -11,10 +11,7 @@ from .utils import create_dropdb, dropdb
 from .models import db, RiskTemplate
 
 
-app = Flask(
-    __name__, template_folder='../frontend/dist',
-    static_folder='../frontend/dist/static'
-)
+app = Flask(__name__, template_folder='dist', static_folder='dist/static')
 app.wsgi_app = WhiteNoise(app.wsgi_app)
 
 app.config.from_object(CONFIG)
